@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 
 interface EventColumn {
   id: string;
@@ -24,6 +24,21 @@ interface LeaderboardData {
   entries: LeaderboardEntry[];
   events: EventColumn[];
   lastUpdated: string;
+}
+
+interface Golfer {
+  name: string;
+  projectedTotal: string;
+  projectedEvent: string;
+  officialMoney: string;
+}
+
+interface TeamDetail {
+  teamName: string;
+  golfers: Golfer[];
+  total: string;
+  projected: string;
+  official: string;
 }
 
 function parseMoney(val: string): number {
@@ -66,6 +81,9 @@ export default function Dashboard() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortKey>("official");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
+  const [teamDetails, setTeamDetails] = useState<{ [entryId: string]: TeamDetail }>({});
+  const [loadingTeam, setLoadingTeam] = useState<string | null>(null);
 
   const fetchData = async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
@@ -94,6 +112,28 @@ export default function Dashboard() {
     }, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
+
+  const toggleTeam = useCallback(async (entryId: string) => {
+    if (expandedTeam === entryId) {
+      setExpandedTeam(null);
+      return;
+    }
+    setExpandedTeam(entryId);
+    if (!teamDetails[entryId]) {
+      setLoadingTeam(entryId);
+      try {
+        const res = await fetch(`/api/team?entry=${entryId}`);
+        if (res.ok) {
+          const detail = await res.json();
+          setTeamDetails((prev) => ({ ...prev, [entryId]: detail }));
+        }
+      } catch {
+        // silently fail
+      } finally {
+        setLoadingTeam(null);
+      }
+    }
+  }, [expandedTeam, teamDetails]);
 
   const filteredEntries = useMemo(() => {
     if (!data) return [];
@@ -335,19 +375,29 @@ export default function Dashboard() {
                 <tbody>
                   {filteredEntries.map((entry, idx) => {
                     const displayPos = idx + 1;
+                    const isExpanded = expandedTeam === entry.entryId;
+                    const detail = teamDetails[entry.entryId];
+                    const isLoading = loadingTeam === entry.entryId;
+                    const colSpan = 4 + data.events.length;
                     return (
+                    <React.Fragment key={entry.entryId}>
                     <tr
-                      key={entry.entryId}
-                      className={`border-b border-gray-800/50 hover:bg-gray-800/50 transition-colors ${getPositionStyle(displayPos)}`}
+                      onClick={() => toggleTeam(entry.entryId)}
+                      className={`border-b border-gray-800/50 hover:bg-gray-800/50 transition-colors cursor-pointer select-none ${getPositionStyle(displayPos)}`}
                     >
                       <td className="px-3 py-3 text-center">
                         <span className="text-lg">{getPositionBadge(displayPos)}</span>
                       </td>
                       <td className="px-3 py-3">
-                        <div className="font-semibold">{entry.teamName}</div>
-                        {entry.playerName && (
-                          <div className="text-xs text-gray-500 mt-0.5">{entry.playerName}</div>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] text-gray-500 transition-transform ${isExpanded ? "rotate-90" : ""}`}>▶</span>
+                          <div>
+                            <div className="font-semibold">{entry.teamName}</div>
+                            {entry.playerName && (
+                              <div className="text-xs text-gray-500 mt-0.5">{entry.playerName}</div>
+                            )}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-3 py-3 text-right font-mono text-emerald-400 font-medium">
                         {entry.officialMoney}
@@ -367,6 +417,43 @@ export default function Dashboard() {
                         </td>
                       ))}
                     </tr>
+                    {isExpanded && (
+                      <tr>
+                        <td colSpan={colSpan} className="bg-gray-800/40 px-0 py-0">
+                          {isLoading && (
+                            <div className="flex items-center gap-2 px-6 py-3">
+                              <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                              <span className="text-xs text-gray-400">Loading golfers...</span>
+                            </div>
+                          )}
+                          {detail && (
+                            <div className="px-6 py-3">
+                              <table className="w-full">
+                                <thead>
+                                  <tr className="text-[10px] text-gray-500 uppercase">
+                                    <th className="text-left pb-2 pl-8">Golfer</th>
+                                    <th className="text-right pb-2">Official $</th>
+                                    <th className="text-right pb-2">Proj. Event $</th>
+                                    <th className="text-right pb-2">Proj. Total $</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {detail.golfers.map((golfer) => (
+                                    <tr key={golfer.name} className="border-t border-gray-700/30">
+                                      <td className="py-1.5 pl-8 text-sm text-gray-300">{golfer.name}</td>
+                                      <td className="py-1.5 text-right font-mono text-sm text-emerald-400/80">{golfer.officialMoney}</td>
+                                      <td className="py-1.5 text-right font-mono text-sm text-yellow-300/80">{golfer.projectedEvent}</td>
+                                      <td className="py-1.5 text-right font-mono text-sm text-green-400/80">{golfer.projectedTotal}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                     );
                   })}
                 </tbody>
@@ -377,58 +464,89 @@ export default function Dashboard() {
             <div className="lg:hidden space-y-3">
               {filteredEntries.map((entry, idx) => {
                 const displayPos = idx + 1;
+                const isExpanded = expandedTeam === entry.entryId;
+                const detail = teamDetails[entry.entryId];
+                const isLoading = loadingTeam === entry.entryId;
                 return (
                 <div
                   key={entry.entryId}
-                  className={`bg-gray-900 rounded-xl p-4 border border-gray-800 ${getPositionStyle(displayPos)}`}
+                  className={`bg-gray-900 rounded-xl border border-gray-800 overflow-hidden ${getPositionStyle(displayPos)}`}
                 >
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="text-xl">{getPositionBadge(displayPos)}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold truncate">{entry.teamName}</div>
-                      {entry.playerName && (
-                        <div className="text-xs text-gray-500">{entry.playerName}</div>
-                      )}
+                  <div
+                    className="p-4 cursor-pointer select-none"
+                    onClick={() => toggleTeam(entry.entryId)}
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-xl">{getPositionBadge(displayPos)}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] text-gray-500 transition-transform ${isExpanded ? "rotate-90" : ""}`}>▶</span>
+                          <div className="font-semibold truncate">{entry.teamName}</div>
+                        </div>
+                        {entry.playerName && (
+                          <div className="text-xs text-gray-500 ml-4">{entry.playerName}</div>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-2 mb-2">
-                    <div className="bg-gray-800/50 rounded-lg p-2">
-                      <p className="text-[10px] text-gray-500 uppercase">Official $</p>
-                      <p className="text-sm font-mono text-emerald-400 font-medium">
-                        {formatMoney(entry.officialMoney)}
-                      </p>
-                    </div>
-                    <div className="bg-gray-800/50 rounded-lg p-2">
-                      <p className="text-[10px] text-gray-500 uppercase">Projected $</p>
-                      <p className="text-sm font-mono text-green-400 font-medium">
-                        {formatMoney(entry.projectedTotal)}
-                        <ProjectedDelta entryId={entry.entryId} />
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {data.events.map((event) => (
-                      <div key={event.id} className="text-center">
-                        <p
-                          className={`text-[9px] uppercase truncate ${
-                            event.isCurrent ? "text-yellow-400" : "text-gray-600"
-                          }`}
-                        >
-                          {event.name}
-                          {event.isCurrent ? " *" : ""}
-                        </p>
-                        <p
-                          className={`text-xs font-mono ${
-                            event.isCurrent ? "text-yellow-300" : "text-gray-500"
-                          }`}
-                        >
-                          {formatMoney(entry.eventEarnings[event.id] || "$0")}
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                      <div className="bg-gray-800/50 rounded-lg p-2">
+                        <p className="text-[10px] text-gray-500 uppercase">Official $</p>
+                        <p className="text-sm font-mono text-emerald-400 font-medium">
+                          {formatMoney(entry.officialMoney)}
                         </p>
                       </div>
-                    ))}
+                      <div className="bg-gray-800/50 rounded-lg p-2">
+                        <p className="text-[10px] text-gray-500 uppercase">Projected $</p>
+                        <p className="text-sm font-mono text-green-400 font-medium">
+                          {formatMoney(entry.projectedTotal)}
+                          <ProjectedDelta entryId={entry.entryId} />
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {data.events.map((event) => (
+                        <div key={event.id} className="text-center">
+                          <p
+                            className={`text-[9px] uppercase truncate ${
+                              event.isCurrent ? "text-yellow-400" : "text-gray-600"
+                            }`}
+                          >
+                            {event.name}
+                            {event.isCurrent ? " *" : ""}
+                          </p>
+                          <p
+                            className={`text-xs font-mono ${
+                              event.isCurrent ? "text-yellow-300" : "text-gray-500"
+                            }`}
+                          >
+                            {formatMoney(entry.eventEarnings[event.id] || "$0")}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+
+                  {isExpanded && (
+                    <div className="border-t border-gray-700/50 bg-gray-800/30 px-4 py-3">
+                      {isLoading && (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                          <span className="text-xs text-gray-400">Loading golfers...</span>
+                        </div>
+                      )}
+                      {detail && detail.golfers.map((golfer) => (
+                        <div key={golfer.name} className="flex justify-between items-center py-1.5 border-b border-gray-700/30 last:border-0">
+                          <span className="text-sm text-gray-300">{golfer.name}</span>
+                          <div className="flex gap-3 text-xs font-mono">
+                            <span className="text-emerald-400/80">{formatMoney(golfer.officialMoney)}</span>
+                            <span className="text-green-400/80">{formatMoney(golfer.projectedTotal)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 );
               })}
