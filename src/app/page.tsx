@@ -427,11 +427,12 @@ export default function Dashboard() {
                             </div>
                           )}
                           {detail && (
-                            <div className="flex flex-wrap gap-x-4 gap-y-0 px-8 py-2">
+                            <div className="flex flex-col gap-0 px-8 py-1.5">
                               {detail.golfers.map((golfer) => (
-                                <div key={golfer.name} className="flex items-center gap-2 py-0.5 text-xs">
-                                  <span className="text-gray-300">{golfer.name}</span>
-                                  <span className="font-mono text-emerald-400/80">{formatMoney(golfer.officialMoney)}</span>
+                                <div key={golfer.name} className="flex items-center gap-3 py-0.5 text-xs">
+                                  <span className="text-gray-300 w-44 truncate">{golfer.name}</span>
+                                  <span className="font-mono text-emerald-400/80 w-16 text-right">{formatMoney(golfer.officialMoney)}</span>
+                                  <span className="font-mono text-green-400/80 w-16 text-right">{formatMoney(golfer.projectedTotal)}</span>
                                   {parseMoney(golfer.projectedEvent) > 0 && (
                                     <span className="font-mono text-yellow-300/70">+{formatMoney(golfer.projectedEvent)}</span>
                                   )}
@@ -526,11 +527,12 @@ export default function Dashboard() {
                         </div>
                       )}
                       {detail && (
-                        <div className="flex flex-wrap gap-x-3 gap-y-0">
+                        <div className="flex flex-col gap-0">
                           {detail.golfers.map((golfer) => (
-                            <div key={golfer.name} className="flex items-center gap-1.5 py-0.5 text-xs">
-                              <span className="text-gray-300">{golfer.name}</span>
+                            <div key={golfer.name} className="flex items-center gap-3 py-0.5 text-xs">
+                              <span className="text-gray-300 flex-1 truncate">{golfer.name}</span>
                               <span className="font-mono text-emerald-400/80">{formatMoney(golfer.officialMoney)}</span>
+                              <span className="font-mono text-green-400/80">{formatMoney(golfer.projectedTotal)}</span>
                               {parseMoney(golfer.projectedEvent) > 0 && (
                                 <span className="font-mono text-yellow-300/70">+{formatMoney(golfer.projectedEvent)}</span>
                               )}
