@@ -143,8 +143,12 @@ export default function Dashboard() {
   }
 
   const leader = data?.entries[0];
-  const totalPrizePool =
-    data?.entries.reduce((sum, e) => sum + parseMoney(e.officialMoney), 0) || 0;
+  const topOfficial = data?.entries.reduce((best, e) =>
+    parseMoney(e.officialMoney) > parseMoney(best.officialMoney) ? e : best
+  , data?.entries[0]);
+  const topProjected = data?.entries.reduce((best, e) =>
+    parseMoney(e.projectedTotal) > parseMoney(best.projectedTotal) ? e : best
+  , data?.entries[0]);
   const currentEvent = data?.events.find((e) => e.isCurrent);
 
   return (
@@ -173,28 +177,25 @@ export default function Dashboard() {
       <main className="max-w-7xl mx-auto px-4 py-6">
         {/* Stats Cards */}
         {data && !loading && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
             <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-              <p className="text-xs text-gray-400 uppercase tracking-wider">Teams</p>
-              <p className="text-2xl font-bold mt-1">{data.entries.length}</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider">🏆 Leader</p>
+              <p className="text-xl font-bold mt-1 truncate">{leader?.teamName}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{leader?.playerName}</p>
             </div>
             <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-              <p className="text-xs text-gray-400 uppercase tracking-wider">Leader</p>
-              <p className="text-lg font-bold mt-1 truncate">{leader?.teamName}</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider">Top Official $</p>
+              <p className="text-2xl font-bold mt-1 text-emerald-400">
+                {topOfficial ? formatMoney(topOfficial.officialMoney) : "-"}
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">{topOfficial?.teamName}</p>
             </div>
             <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-              <p className="text-xs text-gray-400 uppercase tracking-wider">Top Projected</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider">Top Projected $</p>
               <p className="text-2xl font-bold mt-1 text-green-400">
-                {leader ? formatMoney(leader.projectedTotal) : "-"}
+                {topProjected ? formatMoney(topProjected.projectedTotal) : "-"}
               </p>
-            </div>
-            <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-              <p className="text-xs text-gray-400 uppercase tracking-wider">
-                {currentEvent ? `Live: ${currentEvent.name}` : "Current Event"}
-              </p>
-              <p className="text-lg font-bold mt-1 text-yellow-400">
-                {currentEvent ? "In Progress" : "-"}
-              </p>
+              <p className="text-xs text-gray-500 mt-0.5">{topProjected?.teamName}</p>
             </div>
           </div>
         )}
