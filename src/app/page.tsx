@@ -67,22 +67,32 @@ export default function Dashboard() {
   const [sortBy, setSortBy] = useState<SortKey>("position");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch("/api/leaderboard");
-        if (!res.ok) throw new Error("Failed to fetch");
-        const json = await res.json();
-        setData(json);
-      } catch {
-        setError("Failed to load leaderboard data. Please try again.");
-      } finally {
-        setLoading(false);
-      }
+  const fetchData = async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/leaderboard");
+      if (!res.ok) throw new Error("Failed to fetch");
+      const json = await res.json();
+      setData(json);
+    } catch {
+      if (!isRefresh) setError("Failed to load leaderboard data. Please try again.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  // Initial load
+  useEffect(() => {
     fetchData();
+  }, []);
+
+  // Auto-refresh every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchData(true);
+    }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const filteredEntries = useMemo(() => {
