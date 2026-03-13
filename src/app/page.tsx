@@ -151,6 +151,48 @@ export default function Dashboard() {
   , data?.entries[0]);
   const currentEvent = data?.events.find((e) => e.isCurrent);
 
+  // Compute projected position change for each team
+  const projectedDelta = useMemo(() => {
+    if (!data) return {};
+    // Rank by official $ (highest = rank 1)
+    const officialRanked = [...data.entries].sort(
+      (a, b) => parseMoney(b.officialMoney) - parseMoney(a.officialMoney)
+    );
+    const officialRankMap: { [id: string]: number } = {};
+    officialRanked.forEach((e, i) => (officialRankMap[e.entryId] = i + 1));
+
+    // Rank by projected total $ (highest = rank 1)
+    const projectedRanked = [...data.entries].sort(
+      (a, b) => parseMoney(b.projectedTotal) - parseMoney(a.projectedTotal)
+    );
+    const projectedRankMap: { [id: string]: number } = {};
+    projectedRanked.forEach((e, i) => (projectedRankMap[e.entryId] = i + 1));
+
+    // Delta = official rank - projected rank (positive = rising, negative = falling)
+    const deltas: { [id: string]: number } = {};
+    data.entries.forEach((e) => {
+      deltas[e.entryId] = officialRankMap[e.entryId] - projectedRankMap[e.entryId];
+    });
+    return deltas;
+  }, [data]);
+
+  function ProjectedDelta({ entryId }: { entryId: string }) {
+    const delta = projectedDelta[entryId] || 0;
+    if (delta === 0) return null;
+    if (delta > 0) {
+      return (
+        <span className="text-green-400 text-xs ml-1.5 font-semibold">
+          ▲{delta}
+        </span>
+      );
+    }
+    return (
+      <span className="text-red-400 text-xs ml-1.5 font-semibold">
+        ▼{Math.abs(delta)}
+      </span>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Header */}
@@ -312,6 +354,7 @@ export default function Dashboard() {
                       </td>
                       <td className="px-3 py-3 text-right font-mono text-green-400 font-medium">
                         {entry.projectedTotal}
+                        <ProjectedDelta entryId={entry.entryId} />
                       </td>
                       {data.events.map((event) => (
                         <td
@@ -360,6 +403,7 @@ export default function Dashboard() {
                       <p className="text-[10px] text-gray-500 uppercase">Projected $</p>
                       <p className="text-sm font-mono text-green-400 font-medium">
                         {formatMoney(entry.projectedTotal)}
+                        <ProjectedDelta entryId={entry.entryId} />
                       </p>
                     </div>
                   </div>
