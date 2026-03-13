@@ -280,13 +280,15 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredEntries.map((entry) => (
+                  {filteredEntries.map((entry, idx) => {
+                    const displayPos = idx + 1;
+                    return (
                     <tr
                       key={entry.entryId}
-                      className={`border-b border-gray-800/50 hover:bg-gray-800/50 transition-colors ${getPositionStyle(entry.position)}`}
+                      className={`border-b border-gray-800/50 hover:bg-gray-800/50 transition-colors ${getPositionStyle(displayPos)}`}
                     >
                       <td className="px-3 py-3 text-center">
-                        <span className="text-lg">{getPositionBadge(entry.position)}</span>
+                        <span className="text-lg">{getPositionBadge(displayPos)}</span>
                       </td>
                       <td className="px-3 py-3">
                         <div className="font-semibold">{entry.teamName}</div>
@@ -311,20 +313,23 @@ export default function Dashboard() {
                         </td>
                       ))}
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile Cards */}
             <div className="lg:hidden space-y-3">
-              {filteredEntries.map((entry) => (
+              {filteredEntries.map((entry, idx) => {
+                const displayPos = idx + 1;
+                return (
                 <div
                   key={entry.entryId}
-                  className={`bg-gray-900 rounded-xl p-4 border border-gray-800 ${getPositionStyle(entry.position)}`}
+                  className={`bg-gray-900 rounded-xl p-4 border border-gray-800 ${getPositionStyle(displayPos)}`}
                 >
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="text-xl">{getPositionBadge(entry.position)}</span>
+                    <span className="text-xl">{getPositionBadge(displayPos)}</span>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold truncate">{entry.teamName}</div>
                       {entry.playerName && (
@@ -370,7 +375,8 @@ export default function Dashboard() {
                     ))}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
 
             {filteredEntries.length === 0 && (
