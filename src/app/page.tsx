@@ -335,32 +335,32 @@ export default function Dashboard() {
         {!loading && !error && data && (
           <>
             <div className="hidden lg:block bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-800 text-[10px] text-gray-400 uppercase tracking-wider">
+                  <tr className="border-b border-gray-800 text-[11px] text-gray-400 uppercase tracking-wider">
                     <th
-                      className="px-2 py-2 text-center cursor-pointer hover:text-white transition-colors w-10"
+                      className="px-3 py-3 text-center cursor-pointer hover:text-white transition-colors w-14"
                       onClick={() => handleSort("position")}
                     >
-                      # <SortIcon col="position" />
+                      Pos <SortIcon col="position" />
                     </th>
-                    <th className="px-2 py-2 text-left">Team</th>
+                    <th className="px-3 py-3 text-left">Team</th>
                     <th
-                      className="px-2 py-2 text-right cursor-pointer hover:text-white transition-colors"
+                      className="px-3 py-3 text-right cursor-pointer hover:text-white transition-colors"
                       onClick={() => handleSort("official")}
                     >
-                      Official <SortIcon col="official" />
+                      Official $ <SortIcon col="official" />
                     </th>
                     <th
-                      className="px-2 py-2 text-right cursor-pointer hover:text-white transition-colors"
+                      className="px-3 py-3 text-right cursor-pointer hover:text-white transition-colors"
                       onClick={() => handleSort("projTotal")}
                     >
-                      Projected <SortIcon col="projTotal" />
+                      Projected $ <SortIcon col="projTotal" />
                     </th>
                     {data.events.map((event) => (
                       <th
                         key={event.id}
-                        className="px-2 py-2 text-right cursor-pointer hover:text-white transition-colors whitespace-nowrap"
+                        className="px-3 py-3 text-right cursor-pointer hover:text-white transition-colors whitespace-nowrap"
                         onClick={() => handleSort(event.id)}
                       >
                         <span className={event.isCurrent ? "text-yellow-400" : ""}>
@@ -385,35 +385,35 @@ export default function Dashboard() {
                       onClick={() => toggleTeam(entry.entryId)}
                       className={`border-b border-gray-800/50 hover:bg-gray-800/50 transition-colors cursor-pointer select-none ${getPositionStyle(displayPos)}`}
                     >
-                      <td className="px-2 py-2 text-center">
-                        <span className="text-sm">{getPositionBadge(displayPos)}</span>
+                      <td className="px-3 py-3 text-center">
+                        <span className="text-lg">{getPositionBadge(displayPos)}</span>
                       </td>
-                      <td className="px-2 py-2">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`text-[9px] text-gray-500 transition-transform ${isExpanded ? "rotate-90" : ""}`}>▶</span>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] text-gray-500 transition-transform ${isExpanded ? "rotate-90" : ""}`}>▶</span>
                           <div>
-                            <div className="font-semibold text-sm leading-tight">{entry.teamName}</div>
+                            <div className="font-semibold">{entry.teamName}</div>
                             {entry.playerName && (
-                              <div className="text-[11px] text-gray-500">{entry.playerName}</div>
+                              <div className="text-xs text-gray-500 mt-0.5">{entry.playerName}</div>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-2 py-2 text-right font-mono text-emerald-400 font-medium text-sm">
-                        {formatMoney(entry.officialMoney)}
+                      <td className="px-3 py-3 text-right font-mono text-emerald-400 font-medium">
+                        {entry.officialMoney}
                       </td>
-                      <td className="px-2 py-2 text-right font-mono text-green-400 font-medium text-sm">
-                        {formatMoney(entry.projectedTotal)}
+                      <td className="px-3 py-3 text-right font-mono text-green-400 font-medium">
+                        {entry.projectedTotal}
                         <ProjectedDelta entryId={entry.entryId} />
                       </td>
                       {data.events.map((event) => (
                         <td
                           key={event.id}
-                          className={`px-2 py-2 text-right font-mono text-xs ${
+                          className={`px-3 py-3 text-right font-mono text-sm ${
                             event.isCurrent ? "text-yellow-300" : "text-gray-400"
                           }`}
                         >
-                          {formatMoney(entry.eventEarnings[event.id] || "$0")}
+                          {formatMoneyFull(entry.eventEarnings[event.id] || "$0")}
                         </td>
                       ))}
                     </tr>
@@ -421,33 +421,22 @@ export default function Dashboard() {
                       <tr>
                         <td colSpan={colSpan} className="bg-gray-800/40 px-0 py-0">
                           {isLoading && (
-                            <div className="flex items-center gap-2 px-4 py-2">
+                            <div className="flex items-center gap-2 px-6 py-2">
                               <div className="w-3 h-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
                               <span className="text-xs text-gray-400">Loading golfers...</span>
                             </div>
                           )}
                           {detail && (
-                            <div className="px-4 py-2">
-                              <table className="w-full text-xs">
-                                <thead>
-                                  <tr className="text-[9px] text-gray-500 uppercase">
-                                    <th className="text-left pb-1 pl-6">Golfer</th>
-                                    <th className="text-right pb-1">Official</th>
-                                    <th className="text-right pb-1">Proj. Event</th>
-                                    <th className="text-right pb-1">Proj. Total</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {detail.golfers.map((golfer) => (
-                                    <tr key={golfer.name} className="border-t border-gray-700/30">
-                                      <td className="py-1 pl-6 text-xs text-gray-300">{golfer.name}</td>
-                                      <td className="py-1 text-right font-mono text-xs text-emerald-400/80">{formatMoney(golfer.officialMoney)}</td>
-                                      <td className="py-1 text-right font-mono text-xs text-yellow-300/80">{formatMoney(golfer.projectedEvent)}</td>
-                                      <td className="py-1 text-right font-mono text-xs text-green-400/80">{formatMoney(golfer.projectedTotal)}</td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                            <div className="flex flex-wrap gap-x-4 gap-y-0 px-8 py-2">
+                              {detail.golfers.map((golfer) => (
+                                <div key={golfer.name} className="flex items-center gap-2 py-0.5 text-xs">
+                                  <span className="text-gray-300">{golfer.name}</span>
+                                  <span className="font-mono text-emerald-400/80">{formatMoney(golfer.officialMoney)}</span>
+                                  {parseMoney(golfer.projectedEvent) > 0 && (
+                                    <span className="font-mono text-yellow-300/70">+{formatMoney(golfer.projectedEvent)}</span>
+                                  )}
+                                </div>
+                              ))}
                             </div>
                           )}
                         </td>
@@ -529,22 +518,26 @@ export default function Dashboard() {
                   </div>
 
                   {isExpanded && (
-                    <div className="border-t border-gray-700/50 bg-gray-800/30 px-4 py-3">
+                    <div className="border-t border-gray-700/50 bg-gray-800/30 px-4 py-2">
                       {isLoading && (
                         <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                          <div className="w-3 h-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
                           <span className="text-xs text-gray-400">Loading golfers...</span>
                         </div>
                       )}
-                      {detail && detail.golfers.map((golfer) => (
-                        <div key={golfer.name} className="flex justify-between items-center py-1.5 border-b border-gray-700/30 last:border-0">
-                          <span className="text-sm text-gray-300">{golfer.name}</span>
-                          <div className="flex gap-3 text-xs font-mono">
-                            <span className="text-emerald-400/80">{formatMoney(golfer.officialMoney)}</span>
-                            <span className="text-green-400/80">{formatMoney(golfer.projectedTotal)}</span>
-                          </div>
+                      {detail && (
+                        <div className="flex flex-wrap gap-x-3 gap-y-0">
+                          {detail.golfers.map((golfer) => (
+                            <div key={golfer.name} className="flex items-center gap-1.5 py-0.5 text-xs">
+                              <span className="text-gray-300">{golfer.name}</span>
+                              <span className="font-mono text-emerald-400/80">{formatMoney(golfer.officialMoney)}</span>
+                              {parseMoney(golfer.projectedEvent) > 0 && (
+                                <span className="font-mono text-yellow-300/70">+{formatMoney(golfer.projectedEvent)}</span>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </div>
                   )}
                 </div>
