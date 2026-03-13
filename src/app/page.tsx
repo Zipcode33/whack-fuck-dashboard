@@ -179,7 +179,7 @@ export default function Dashboard() {
         {data && !loading && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
             <div className="bg-gray-900 rounded-xl p-4 border border-gray-800">
-              <p className="text-xs text-gray-400 uppercase tracking-wider">🏆 Leader</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wider">🏆 Season Leader</p>
               <p className="text-xl font-bold mt-1 truncate">{leader?.teamName}</p>
               <p className="text-xs text-gray-500 mt-0.5">{leader?.playerName}</p>
             </div>
