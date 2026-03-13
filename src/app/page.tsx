@@ -64,7 +64,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<SortKey>("position");
+  const [sortBy, setSortBy] = useState<SortKey>("official");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   const fetchData = async (isRefresh = false) => {
@@ -142,10 +142,10 @@ export default function Dashboard() {
     return <span className="text-green-400 ml-1 text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>;
   }
 
-  const leader = data?.entries[0];
   const topOfficial = data?.entries.reduce((best, e) =>
     parseMoney(e.officialMoney) > parseMoney(best.officialMoney) ? e : best
   , data?.entries[0]);
+  const leader = topOfficial;
   const topProjected = data?.entries.reduce((best, e) =>
     parseMoney(e.projectedTotal) > parseMoney(best.projectedTotal) ? e : best
   , data?.entries[0]);
