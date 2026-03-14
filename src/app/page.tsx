@@ -59,7 +59,7 @@ function formatMoneyFull(val: string): string {
 }
 
 function getPgaTourUrl(name: string): string {
-  return `https://www.google.com/search?q=${encodeURIComponent(name)}+site:pgatour.com/player&btnI=1`;
+  return `/api/player-link?name=${encodeURIComponent(name)}`;
 }
 
 function getPositionStyle(pos: number) {
