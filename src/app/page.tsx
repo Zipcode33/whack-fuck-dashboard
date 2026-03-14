@@ -874,7 +874,7 @@ export default function Dashboard() {
         {/* Golfer Stats Section */}
         {golferStats && !loading && (
           <div className="mt-10">
-            <h2 className="text-xl font-bold mb-4">🏌️ Golfer Stats</h2>
+            <h2 className="text-xl font-bold mb-4">🏌️ Selection</h2>
 
             {/* Golfer Popularity Table - Desktop */}
             <div className="hidden lg:block bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto mb-8">
