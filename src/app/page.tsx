@@ -58,6 +58,11 @@ function formatMoneyFull(val: string): string {
   return `$${num.toLocaleString()}`;
 }
 
+function getPgaTourUrl(name: string): string {
+  const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z-]/g, "");
+  return `https://www.pgatour.com/player/${slug}`;
+}
+
 function getPositionStyle(pos: number) {
   if (pos === 1) return "bg-gradient-to-r from-yellow-400/20 to-transparent border-l-4 border-yellow-400";
   if (pos === 2) return "bg-gradient-to-r from-gray-300/20 to-transparent border-l-4 border-gray-400";
@@ -433,7 +438,15 @@ export default function Dashboard() {
                         <td className="px-3 py-2">
                           <div className="flex items-center gap-2 pl-5">
                             <span className="text-gray-500 text-xs">•</span>
-                            <span className="text-gray-400">{golfer.name}</span>
+                            <a
+                              href={getPgaTourUrl(golfer.name)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-gray-400 hover:text-green-400 hover:underline transition-colors"
+                            >
+                              {golfer.name}
+                            </a>
                           </div>
                         </td>
                         <td className="px-3 py-2 text-right font-mono text-emerald-400/60">
@@ -539,7 +552,15 @@ export default function Dashboard() {
                           {detail.golfers.map((golfer, gi) => (
                             <div key={golfer.name} className={`flex items-center gap-3 py-2.5 text-sm ${gi < detail.golfers.length - 1 ? "border-b border-gray-700/20" : ""}`}>
                               <span className="text-gray-500 text-xs">•</span>
-                              <span className="text-gray-400 flex-1 truncate">{golfer.name}</span>
+                              <a
+                                href={getPgaTourUrl(golfer.name)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-gray-400 hover:text-green-400 hover:underline transition-colors flex-1 truncate"
+                              >
+                                {golfer.name}
+                              </a>
                               <span className="font-mono text-emerald-400/60">
                                 {parseMoney(golfer.officialMoney) > 0 ? formatMoney(golfer.officialMoney) : "—"}
                               </span>
