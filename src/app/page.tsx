@@ -121,7 +121,8 @@ export default function Dashboard() {
   const [golferSortDir, setGolferSortDir] = useState<"asc" | "desc">("asc");
   const [compareTeamA, setCompareTeamA] = useState<string>("");
   const [compareTeamB, setCompareTeamB] = useState<string>("");
-  const [mvpAsc, setMvpAsc] = useState(true); // true = most to least
+  const [mvpSortBy, setMvpSortBy] = useState<"official" | "projected" | "event" | "name" | "picks">("official");
+  const [mvpSortDir, setMvpSortDir] = useState<"asc" | "desc">("asc");
 
   const fetchData = async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
@@ -314,11 +315,32 @@ export default function Dashboard() {
     if (!golferStats) return [];
     const arr = [...golferStats.golfers];
     arr.sort((a, b) => {
-      const diff = parseMoney(b.officialMoney) - parseMoney(a.officialMoney);
-      return mvpAsc ? diff : -diff;
+      let cmp = 0;
+      switch (mvpSortBy) {
+        case "official": cmp = parseMoney(b.officialMoney) - parseMoney(a.officialMoney); break;
+        case "projected": cmp = parseMoney(b.projectedTotal) - parseMoney(a.projectedTotal); break;
+        case "event": cmp = parseMoney(b.projectedEvent) - parseMoney(a.projectedEvent); break;
+        case "name": cmp = a.name.localeCompare(b.name); break;
+        case "picks": cmp = b.pickCount - a.pickCount; break;
+      }
+      return mvpSortDir === "asc" ? cmp : -cmp;
     });
     return arr;
-  }, [golferStats, mvpAsc]);
+  }, [golferStats, mvpSortBy, mvpSortDir]);
+
+  function handleMvpSort(col: "official" | "projected" | "event" | "name" | "picks") {
+    if (mvpSortBy === col) {
+      setMvpSortDir(mvpSortDir === "asc" ? "desc" : "asc");
+    } else {
+      setMvpSortBy(col);
+      setMvpSortDir("asc");
+    }
+  }
+
+  function MvpSortIcon({ col }: { col: "official" | "projected" | "event" | "name" | "picks" }) {
+    if (mvpSortBy !== col) return <span className="text-gray-600 ml-1 text-[10px]">↕</span>;
+    return <span className="text-green-400 ml-1 text-[10px]">{mvpSortDir === "asc" ? "↑" : "↓"}</span>;
+  }
 
   function getPickCountColor(count: number): string {
     if (count >= 10) return "text-yellow-300 font-bold";
@@ -708,28 +730,44 @@ export default function Dashboard() {
         {/* MVP List */}
         {golferStats && !loading && (
           <div className="mt-10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">🏅 MVP List</h2>
-              <button
-                onClick={() => setMvpAsc(!mvpAsc)}
-                className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-sm transition-colors"
-              >
-                <span className="text-gray-400">{mvpAsc ? "Most → Least" : "Least → Most"}</span>
-                <span className="text-green-400 text-xs">{mvpAsc ? "↓" : "↑"}</span>
-              </button>
-            </div>
+            <h2 className="text-xl font-bold mb-4">🏅 MVP List</h2>
 
             {/* MVP Desktop */}
             <div className="hidden lg:block bg-gray-900 rounded-xl border border-gray-800 overflow-hidden mb-8">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-800 text-[11px] text-gray-400 uppercase tracking-wider">
-                    <th className="px-3 py-3 text-center w-14">Rank</th>
-                    <th className="px-3 py-3 text-left">Golfer</th>
-                    <th className="px-3 py-3 text-right">Official $</th>
-                    <th className="px-3 py-3 text-right">Projected $</th>
-                    <th className="px-3 py-3 text-right">Current Event</th>
-                    <th className="px-3 py-3 text-center">Teams</th>
+                    <th className="px-3 py-3 text-center w-14">#</th>
+                    <th
+                      className="px-3 py-3 text-left cursor-pointer hover:text-white transition-colors"
+                      onClick={() => handleMvpSort("name")}
+                    >
+                      Golfer <MvpSortIcon col="name" />
+                    </th>
+                    <th
+                      className="px-3 py-3 text-right cursor-pointer hover:text-white transition-colors"
+                      onClick={() => handleMvpSort("official")}
+                    >
+                      Official $ <MvpSortIcon col="official" />
+                    </th>
+                    <th
+                      className="px-3 py-3 text-right cursor-pointer hover:text-white transition-colors"
+                      onClick={() => handleMvpSort("projected")}
+                    >
+                      Projected $ <MvpSortIcon col="projected" />
+                    </th>
+                    <th
+                      className="px-3 py-3 text-right cursor-pointer hover:text-white transition-colors"
+                      onClick={() => handleMvpSort("event")}
+                    >
+                      Current Event <MvpSortIcon col="event" />
+                    </th>
+                    <th
+                      className="px-3 py-3 text-center cursor-pointer hover:text-white transition-colors"
+                      onClick={() => handleMvpSort("picks")}
+                    >
+                      Teams <MvpSortIcon col="picks" />
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
