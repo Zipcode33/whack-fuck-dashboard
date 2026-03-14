@@ -121,6 +121,7 @@ export default function Dashboard() {
   const [golferSortDir, setGolferSortDir] = useState<"asc" | "desc">("asc");
   const [compareTeamA, setCompareTeamA] = useState<string>("");
   const [compareTeamB, setCompareTeamB] = useState<string>("");
+  const [mvpAsc, setMvpAsc] = useState(true); // true = most to least
 
   const fetchData = async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
@@ -308,6 +309,16 @@ export default function Dashboard() {
     const shared = rosterA.golfers.filter((g) => rosterB.golfers.includes(g));
     return { rosterA, rosterB, shared };
   }, [golferStats, compareTeamA, compareTeamB]);
+
+  const mvpList = useMemo(() => {
+    if (!golferStats) return [];
+    const arr = [...golferStats.golfers];
+    arr.sort((a, b) => {
+      const diff = parseMoney(b.officialMoney) - parseMoney(a.officialMoney);
+      return mvpAsc ? diff : -diff;
+    });
+    return arr;
+  }, [golferStats, mvpAsc]);
 
   function getPickCountColor(count: number): string {
     if (count >= 10) return "text-yellow-300 font-bold";
@@ -694,6 +705,134 @@ export default function Dashboard() {
             )}
           </>
         )}
+        {/* MVP List */}
+        {golferStats && !loading && (
+          <div className="mt-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">🏅 MVP List</h2>
+              <button
+                onClick={() => setMvpAsc(!mvpAsc)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-sm transition-colors"
+              >
+                <span className="text-gray-400">{mvpAsc ? "Most → Least" : "Least → Most"}</span>
+                <span className="text-green-400 text-xs">{mvpAsc ? "↓" : "↑"}</span>
+              </button>
+            </div>
+
+            {/* MVP Desktop */}
+            <div className="hidden lg:block bg-gray-900 rounded-xl border border-gray-800 overflow-hidden mb-8">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-800 text-[11px] text-gray-400 uppercase tracking-wider">
+                    <th className="px-3 py-3 text-center w-14">Rank</th>
+                    <th className="px-3 py-3 text-left">Golfer</th>
+                    <th className="px-3 py-3 text-right">Official $</th>
+                    <th className="px-3 py-3 text-right">Projected $</th>
+                    <th className="px-3 py-3 text-right">Current Event</th>
+                    <th className="px-3 py-3 text-center">Teams</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mvpList.map((golfer, idx) => {
+                    const rank = idx + 1;
+                    return (
+                      <tr
+                        key={golfer.name}
+                        className={`border-b border-gray-800/50 hover:bg-gray-800/50 transition-colors ${
+                          rank <= 3
+                            ? rank === 1
+                              ? "bg-gradient-to-r from-yellow-400/10 to-transparent"
+                              : rank === 2
+                              ? "bg-gradient-to-r from-gray-300/10 to-transparent"
+                              : "bg-gradient-to-r from-amber-600/10 to-transparent"
+                            : ""
+                        }`}
+                      >
+                        <td className="px-3 py-3 text-center">
+                          <span className="text-lg">{rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : <span className="text-sm text-gray-500">{rank}</span>}</span>
+                        </td>
+                        <td className="px-3 py-3">
+                          <a
+                            href={getPgaTourUrl(golfer.name)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="hover:text-green-400 hover:underline transition-colors font-medium"
+                          >
+                            {golfer.name}
+                          </a>
+                        </td>
+                        <td className="px-3 py-3 text-right font-mono text-emerald-400 font-medium">
+                          {formatMoneyFull(golfer.officialMoney)}
+                        </td>
+                        <td className="px-3 py-3 text-right font-mono text-green-400">
+                          {formatMoney(golfer.projectedTotal)}
+                        </td>
+                        <td className="px-3 py-3 text-right font-mono text-yellow-300">
+                          {parseMoney(golfer.projectedEvent) > 0 ? `+${formatMoney(golfer.projectedEvent)}` : <span className="text-gray-600">—</span>}
+                        </td>
+                        <td className={`px-3 py-3 text-center font-mono ${getPickCountColor(golfer.pickCount)}`}>
+                          {golfer.pickCount}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* MVP Mobile */}
+            <div className="lg:hidden space-y-2 mb-8">
+              {mvpList.map((golfer, idx) => {
+                const rank = idx + 1;
+                return (
+                  <div
+                    key={golfer.name}
+                    className={`bg-gray-900 rounded-xl border border-gray-800 p-3 ${
+                      rank <= 3
+                        ? rank === 1
+                          ? "border-l-4 border-l-yellow-400"
+                          : rank === 2
+                          ? "border-l-4 border-l-gray-400"
+                          : "border-l-4 border-l-amber-600"
+                        : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-lg w-8 text-center">
+                        {rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : <span className="text-sm text-gray-500">{rank}</span>}
+                      </span>
+                      <a
+                        href={getPgaTourUrl(golfer.name)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:text-green-400 hover:underline transition-colors font-medium flex-1"
+                      >
+                        {golfer.name}
+                      </a>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 ml-11">
+                      <div>
+                        <p className="text-[9px] text-gray-500 uppercase">Official</p>
+                        <p className="text-sm font-mono text-emerald-400 font-medium">{formatMoney(golfer.officialMoney)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-gray-500 uppercase">Projected</p>
+                        <p className="text-sm font-mono text-green-400">{formatMoney(golfer.projectedTotal)}</p>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-gray-500 uppercase">Event</p>
+                        <p className="text-sm font-mono text-yellow-300">
+                          {parseMoney(golfer.projectedEvent) > 0 ? `+${formatMoney(golfer.projectedEvent)}` : "—"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Golfer Stats Section */}
         {golferStats && !loading && (
           <div className="mt-10">
