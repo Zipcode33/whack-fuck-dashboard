@@ -417,32 +417,36 @@ export default function Dashboard() {
                         </td>
                       ))}
                     </tr>
-                    {isExpanded && (
-                      <tr>
-                        <td colSpan={colSpan} className="bg-gray-800/40 px-0 py-0">
-                          {isLoading && (
-                            <div className="flex items-center gap-2 px-6 py-2">
-                              <div className="w-3 h-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-                              <span className="text-xs text-gray-400">Loading golfers...</span>
-                            </div>
-                          )}
-                          {detail && (
-                            <div className="flex flex-col px-3">
-                              {detail.golfers.map((golfer, gi) => (
-                                <div key={golfer.name} className={`flex items-center gap-3 px-3 py-3 ${gi < detail.golfers.length - 1 ? "border-b border-gray-700/30" : ""}`}>
-                                  <span className="text-gray-300 w-48 truncate">{golfer.name}</span>
-                                  <span className="font-mono text-emerald-400/80 w-20 text-right">{formatMoney(golfer.officialMoney)}</span>
-                                  <span className="font-mono text-green-400/80 w-20 text-right">{formatMoney(golfer.projectedTotal)}</span>
-                                  {parseMoney(golfer.projectedEvent) > 0 && (
-                                    <span className="font-mono text-yellow-300/70">+{formatMoney(golfer.projectedEvent)}</span>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
+                    {isExpanded && isLoading && (
+                      <tr className="bg-gray-800/40">
+                        <td colSpan={colSpan} className="px-3 py-3">
+                          <div className="flex items-center gap-2 pl-6">
+                            <div className="w-3 h-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                            <span className="text-xs text-gray-400">Loading golfers...</span>
+                          </div>
                         </td>
                       </tr>
                     )}
+                    {isExpanded && detail && detail.golfers.map((golfer, gi) => (
+                      <tr key={golfer.name} className={`bg-gray-800/40 ${gi < detail.golfers.length - 1 ? "border-b border-gray-700/30" : ""}`}>
+                        <td className="px-3 py-3"></td>
+                        <td className="px-3 py-3">
+                          <span className="text-gray-300 pl-5">{golfer.name}</span>
+                        </td>
+                        <td className="px-3 py-3 text-right font-mono text-emerald-400/80">
+                          {formatMoney(golfer.officialMoney)}
+                        </td>
+                        <td className="px-3 py-3 text-right font-mono text-green-400/80">
+                          {formatMoney(golfer.projectedTotal)}
+                          {parseMoney(golfer.projectedEvent) > 0 && (
+                            <span className="text-yellow-300/70 ml-1.5">+{formatMoney(golfer.projectedEvent)}</span>
+                          )}
+                        </td>
+                        {data.events.map((event) => (
+                          <td key={event.id} className="px-3 py-3"></td>
+                        ))}
+                      </tr>
+                    ))}
                     </React.Fragment>
                     );
                   })}
