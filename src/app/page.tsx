@@ -419,7 +419,7 @@ export default function Dashboard() {
                     </tr>
                     {isExpanded && isLoading && (
                       <tr className="bg-gray-800/40">
-                        <td colSpan={colSpan} className="px-3 py-3">
+                        <td colSpan={colSpan} className="px-3 py-2.5">
                           <div className="flex items-center gap-2 pl-6">
                             <div className="w-3 h-3 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
                             <span className="text-xs text-gray-400">Loading golfers...</span>
@@ -428,22 +428,26 @@ export default function Dashboard() {
                       </tr>
                     )}
                     {isExpanded && detail && detail.golfers.map((golfer, gi) => (
-                      <tr key={golfer.name} className={`bg-gray-800/40 ${gi < detail.golfers.length - 1 ? "border-b border-gray-700/30" : ""}`}>
-                        <td className="px-3 py-3"></td>
-                        <td className="px-3 py-3">
-                          <span className="text-gray-300 pl-5">{golfer.name}</span>
+                      <tr key={golfer.name} className={`bg-gray-800/30 text-sm ${gi < detail.golfers.length - 1 ? "border-b border-gray-700/20" : ""}`}>
+                        <td className="px-3 py-2"></td>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center gap-2 pl-5">
+                            <span className="text-gray-500 text-xs">•</span>
+                            <span className="text-gray-400">{golfer.name}</span>
+                          </div>
                         </td>
-                        <td className="px-3 py-3 text-right font-mono text-emerald-400/80">
-                          {formatMoney(golfer.officialMoney)}
+                        <td className="px-3 py-2 text-right font-mono text-emerald-400/60">
+                          {parseMoney(golfer.officialMoney) > 0 ? formatMoney(golfer.officialMoney) : <span className="text-gray-600">—</span>}
                         </td>
-                        <td className="px-3 py-3 text-right font-mono text-green-400/80">
-                          {formatMoney(golfer.projectedTotal)}
-                          {parseMoney(golfer.projectedEvent) > 0 && (
-                            <span className="text-yellow-300/70 ml-1.5">+{formatMoney(golfer.projectedEvent)}</span>
-                          )}
+                        <td className="px-3 py-2 text-right font-mono text-green-400/60">
+                          {parseMoney(golfer.projectedTotal) > 0 ? formatMoney(golfer.projectedTotal) : <span className="text-gray-600">—</span>}
                         </td>
                         {data.events.map((event) => (
-                          <td key={event.id} className="px-3 py-3"></td>
+                          <td key={event.id} className="px-3 py-2 text-right font-mono text-sm">
+                            {event.isCurrent && parseMoney(golfer.projectedEvent) > 0 ? (
+                              <span className="text-yellow-300/60">+{formatMoney(golfer.projectedEvent)}</span>
+                            ) : null}
+                          </td>
                         ))}
                       </tr>
                     ))}
@@ -533,12 +537,17 @@ export default function Dashboard() {
                       {detail && (
                         <div className="flex flex-col">
                           {detail.golfers.map((golfer, gi) => (
-                            <div key={golfer.name} className={`flex items-center gap-3 py-3 ${gi < detail.golfers.length - 1 ? "border-b border-gray-700/30" : ""}`}>
-                              <span className="text-gray-300 flex-1 truncate">{golfer.name}</span>
-                              <span className="font-mono text-emerald-400/80">{formatMoney(golfer.officialMoney)}</span>
-                              <span className="font-mono text-green-400/80">{formatMoney(golfer.projectedTotal)}</span>
+                            <div key={golfer.name} className={`flex items-center gap-3 py-2.5 text-sm ${gi < detail.golfers.length - 1 ? "border-b border-gray-700/20" : ""}`}>
+                              <span className="text-gray-500 text-xs">•</span>
+                              <span className="text-gray-400 flex-1 truncate">{golfer.name}</span>
+                              <span className="font-mono text-emerald-400/60">
+                                {parseMoney(golfer.officialMoney) > 0 ? formatMoney(golfer.officialMoney) : "—"}
+                              </span>
+                              <span className="font-mono text-green-400/60">
+                                {parseMoney(golfer.projectedTotal) > 0 ? formatMoney(golfer.projectedTotal) : "—"}
+                              </span>
                               {parseMoney(golfer.projectedEvent) > 0 && (
-                                <span className="font-mono text-yellow-300/70">+{formatMoney(golfer.projectedEvent)}</span>
+                                <span className="font-mono text-yellow-300/60">+{formatMoney(golfer.projectedEvent)}</span>
                               )}
                             </div>
                           ))}
