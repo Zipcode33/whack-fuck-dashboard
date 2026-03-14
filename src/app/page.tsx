@@ -62,6 +62,10 @@ function getPgaTourUrl(name: string): string {
   return `/api/player-link?name=${encodeURIComponent(name)}`;
 }
 
+function getEventUrl(name: string): string {
+  return `/api/event-link?name=${encodeURIComponent(name)}`;
+}
+
 function getPositionStyle(pos: number) {
   if (pos === 1) return "bg-gradient-to-r from-yellow-400/20 to-transparent border-l-4 border-yellow-400";
   if (pos === 2) return "bg-gradient-to-r from-gray-300/20 to-transparent border-l-4 border-gray-400";
@@ -367,10 +371,16 @@ export default function Dashboard() {
                         className="px-3 py-3 text-right cursor-pointer hover:text-white transition-colors whitespace-nowrap"
                         onClick={() => handleSort(event.id)}
                       >
-                        <span className={event.isCurrent ? "text-yellow-400" : ""}>
+                        <a
+                          href={getEventUrl(event.name)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className={`hover:underline ${event.isCurrent ? "text-yellow-400" : ""}`}
+                        >
                           {event.name}
                           {event.isCurrent && " *"}
-                        </span>
+                        </a>
                         <SortIcon col={event.id} />
                       </th>
                     ))}
@@ -518,14 +528,18 @@ export default function Dashboard() {
                     <div className="grid grid-cols-3 gap-1.5">
                       {data.events.map((event) => (
                         <div key={event.id} className="text-center">
-                          <p
-                            className={`text-[9px] uppercase truncate ${
+                          <a
+                            href={getEventUrl(event.name)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className={`text-[9px] uppercase truncate block hover:underline ${
                               event.isCurrent ? "text-yellow-400" : "text-gray-600"
                             }`}
                           >
                             {event.name}
                             {event.isCurrent ? " *" : ""}
-                          </p>
+                          </a>
                           <p
                             className={`text-xs font-mono ${
                               event.isCurrent ? "text-yellow-300" : "text-gray-500"
