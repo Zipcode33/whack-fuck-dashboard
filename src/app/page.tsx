@@ -427,9 +427,9 @@ export default function Dashboard() {
                             </div>
                           )}
                           {detail && (
-                            <div className="flex flex-col gap-0.5 px-10 py-2.5">
-                              {detail.golfers.map((golfer) => (
-                                <div key={golfer.name} className="flex items-center gap-4 py-1 text-sm">
+                            <div className="flex flex-col px-3">
+                              {detail.golfers.map((golfer, gi) => (
+                                <div key={golfer.name} className={`flex items-center gap-3 px-3 py-3 ${gi < detail.golfers.length - 1 ? "border-b border-gray-700/30" : ""}`}>
                                   <span className="text-gray-300 w-48 truncate">{golfer.name}</span>
                                   <span className="font-mono text-emerald-400/80 w-20 text-right">{formatMoney(golfer.officialMoney)}</span>
                                   <span className="font-mono text-green-400/80 w-20 text-right">{formatMoney(golfer.projectedTotal)}</span>
@@ -527,9 +527,9 @@ export default function Dashboard() {
                         </div>
                       )}
                       {detail && (
-                        <div className="flex flex-col gap-0.5">
-                          {detail.golfers.map((golfer) => (
-                            <div key={golfer.name} className="flex items-center gap-4 py-1 text-sm">
+                        <div className="flex flex-col">
+                          {detail.golfers.map((golfer, gi) => (
+                            <div key={golfer.name} className={`flex items-center gap-3 py-3 ${gi < detail.golfers.length - 1 ? "border-b border-gray-700/30" : ""}`}>
                               <span className="text-gray-300 flex-1 truncate">{golfer.name}</span>
                               <span className="font-mono text-emerald-400/80">{formatMoney(golfer.officialMoney)}</span>
                               <span className="font-mono text-green-400/80">{formatMoney(golfer.projectedTotal)}</span>
