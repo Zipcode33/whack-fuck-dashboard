@@ -311,6 +311,30 @@ export default function Dashboard() {
     return { rosterA, rosterB, shared };
   }, [golferStats, compareTeamA, compareTeamB]);
 
+  const topCombos = useMemo(() => {
+    if (!golferStats) return [];
+    const rosters = golferStats.rosters;
+    const combos: { teams: string[]; shared: string[]; count: number }[] = [];
+
+    // Compare all pairs
+    for (let i = 0; i < rosters.length; i++) {
+      for (let j = i + 1; j < rosters.length; j++) {
+        const shared = rosters[i].golfers.filter((g) => rosters[j].golfers.includes(g));
+        if (shared.length > 0) {
+          combos.push({
+            teams: [rosters[i].teamName, rosters[j].teamName],
+            shared,
+            count: shared.length,
+          });
+        }
+      }
+    }
+
+    // Sort by most shared, take top 10
+    combos.sort((a, b) => b.count - a.count);
+    return combos.slice(0, 10);
+  }, [golferStats]);
+
   const mvpList = useMemo(() => {
     if (!golferStats) return [];
     const arr = [...golferStats.golfers];
@@ -996,9 +1020,52 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Team Overlap Comparison */}
-            <h2 className="text-xl font-bold mb-4">🔀 Team Comparison</h2>
+            {/* Commonality */}
+            <h2 className="text-xl font-bold mb-4">🔀 Commonality</h2>
+
+            {/* Top 10 Most Common Team Combos */}
+            {topCombos.length > 0 && (
+              <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden mb-6">
+                <div className="px-4 py-3 border-b border-gray-800">
+                  <p className="text-sm text-gray-400">Most Similar Rosters</p>
+                </div>
+                <div className="divide-y divide-gray-800/50">
+                  {topCombos.map((combo, idx) => (
+                    <div key={idx} className="px-4 py-3 hover:bg-gray-800/30 transition-colors">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {combo.teams.map((team) => (
+                            <span key={team} className="text-sm font-medium bg-gray-800 px-2 py-0.5 rounded">
+                              {team}
+                            </span>
+                          ))}
+                        </div>
+                        <span className="text-green-400 font-mono font-semibold text-sm ml-3 whitespace-nowrap">
+                          {combo.count} shared
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {combo.shared.map((g) => (
+                          <a
+                            key={g}
+                            href={getPgaTourUrl(g)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] text-green-400/70 hover:text-green-400 hover:underline transition-colors"
+                          >
+                            {g}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Team Comparison Tool */}
             <div className="bg-gray-900 rounded-xl border border-gray-800 p-4 mb-6">
+              <p className="text-sm text-gray-400 mb-3">Compare Two Teams</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <div>
                   <label className="text-xs text-gray-400 uppercase tracking-wider block mb-1">Team A</label>
