@@ -102,8 +102,10 @@ function getPositionBadge(pos: number) {
 }
 
 type SortKey = "position" | "official" | "projTotal" | string;
+type TabKey = "leaderboard" | "mvp" | "picks" | "commonality";
 
 export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState<TabKey>("leaderboard");
   const [data, setData] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -440,7 +442,30 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Search */}
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 bg-gray-900 rounded-xl p-1 border border-gray-800 overflow-x-auto">
+          {([
+            { key: "leaderboard" as TabKey, label: "Leaderboard" },
+            { key: "mvp" as TabKey, label: "MVP" },
+            { key: "picks" as TabKey, label: "Picks" },
+            { key: "commonality" as TabKey, label: "Commonality" },
+          ]).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                activeTab === tab.key
+                  ? "bg-green-700 text-white"
+                  : "text-gray-400 hover:text-white hover:bg-gray-800"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Search - Leaderboard only */}
+        {activeTab === "leaderboard" && (
         <div className="mb-4">
           <div className="relative max-w-md">
             <input
@@ -465,6 +490,7 @@ export default function Dashboard() {
             </svg>
           </div>
         </div>
+        )}
 
         {/* Loading */}
         {loading && (
@@ -489,8 +515,8 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Desktop Table */}
-        {!loading && !error && data && (
+        {/* LEADERBOARD TAB */}
+        {activeTab === "leaderboard" && !loading && !error && data && (
           <>
             <div className="hidden lg:block bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto">
               <table className="w-full">
@@ -751,10 +777,9 @@ export default function Dashboard() {
             )}
           </>
         )}
-        {/* MVP List */}
-        {golferStats && !loading && (
-          <div className="mt-10">
-            <h2 className="text-xl font-bold mb-4">🏅 MVP List</h2>
+        {/* MVP TAB */}
+        {activeTab === "mvp" && golferStats && (
+          <div>
 
             {/* MVP Desktop */}
             <div className="hidden lg:block bg-gray-900 rounded-xl border border-gray-800 overflow-hidden mb-8">
@@ -895,10 +920,9 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Golfer Stats Section */}
-        {golferStats && !loading && (
-          <div className="mt-10">
-            <h2 className="text-xl font-bold mb-4">🏌️ Selection</h2>
+        {/* PICKS TAB */}
+        {activeTab === "picks" && golferStats && (
+          <div>
 
             {/* Golfer Popularity Table - Desktop */}
             <div className="hidden lg:block bg-gray-900 rounded-xl border border-gray-800 overflow-x-auto mb-8">
@@ -1020,9 +1044,12 @@ export default function Dashboard() {
               ))}
             </div>
 
-            {/* Commonality */}
-            <h2 className="text-xl font-bold mb-4">🔀 Commonality</h2>
+          </div>
+        )}
 
+        {/* COMMONALITY TAB */}
+        {activeTab === "commonality" && golferStats && (
+          <div>
             {/* Top 10 Most Common Team Combos */}
             {topCombos.length > 0 && (
               <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden mb-6">
@@ -1175,11 +1202,11 @@ export default function Dashboard() {
           </div>
         )}
 
-        {golferStatsLoading && !golferStats && (
-          <div className="flex items-center justify-center py-10 mt-8">
+        {activeTab !== "leaderboard" && golferStatsLoading && !golferStats && (
+          <div className="flex items-center justify-center py-20">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
-              <p className="text-gray-400 text-sm">Loading golfer stats...</p>
+              <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-gray-400 text-sm">Loading data...</p>
             </div>
           </div>
         )}
