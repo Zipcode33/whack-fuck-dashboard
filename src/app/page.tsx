@@ -59,8 +59,7 @@ function formatMoneyFull(val: string): string {
 }
 
 function getPgaTourUrl(name: string): string {
-  const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z-]/g, "");
-  return `https://www.pgatour.com/player/${slug}`;
+  return `https://www.google.com/search?q=${encodeURIComponent(name)}+site:pgatour.com/player&btnI=1`;
 }
 
 function getPositionStyle(pos: number) {
