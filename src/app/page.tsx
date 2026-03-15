@@ -658,6 +658,34 @@ export default function Dashboard() {
 
             {/* Mobile Cards */}
             <div className="lg:hidden space-y-3">
+              {/* Mobile Sort Controls */}
+              <div className="flex gap-1.5 overflow-x-auto pb-2 mb-1">
+                {([
+                  { key: "position" as SortKey, label: "Rank" },
+                  { key: "official" as SortKey, label: "Official $" },
+                  { key: "projTotal" as SortKey, label: "Projected $" },
+                  ...data.events.map((event) => ({
+                    key: event.id as SortKey,
+                    label: event.isCurrent ? `${event.name} *` : event.name,
+                  })),
+                ]).map((col) => (
+                  <button
+                    key={col.key}
+                    onClick={() => handleSort(col.key)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-colors ${
+                      sortBy === col.key
+                        ? "bg-green-700 border-green-600 text-white"
+                        : "bg-gray-800 border-gray-700 text-gray-400"
+                    }`}
+                  >
+                    {col.label}
+                    {sortBy === col.key && (
+                      <span className="ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
               {filteredEntries.map((entry, idx) => {
                 const displayPos = idx + 1;
                 const isExpanded = expandedTeam === entry.entryId;
