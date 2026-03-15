@@ -453,7 +453,7 @@ export default function Dashboard() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`flex-1 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeTab === tab.key
                   ? "bg-green-700 text-white"
                   : "text-gray-400 hover:text-white hover:bg-gray-800"
@@ -869,6 +869,32 @@ export default function Dashboard() {
 
             {/* MVP Mobile */}
             <div className="lg:hidden space-y-2 mb-8">
+              {/* Mobile Sort Controls */}
+              <div className="flex gap-1.5 overflow-x-auto pb-2 mb-1">
+                {([
+                  { key: "official" as const, label: "Official $" },
+                  { key: "projected" as const, label: "Projected $" },
+                  { key: "event" as const, label: "Event" },
+                  { key: "picks" as const, label: "Teams" },
+                  { key: "name" as const, label: "Name" },
+                ]).map((col) => (
+                  <button
+                    key={col.key}
+                    onClick={() => handleMvpSort(col.key)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-colors ${
+                      mvpSortBy === col.key
+                        ? "bg-green-700 border-green-600 text-white"
+                        : "bg-gray-800 border-gray-700 text-gray-400"
+                    }`}
+                  >
+                    {col.label}
+                    {mvpSortBy === col.key && (
+                      <span className="ml-1">{mvpSortDir === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
               {mvpList.map((golfer, idx) => {
                 const rank = idx + 1;
                 return (
@@ -896,6 +922,9 @@ export default function Dashboard() {
                       >
                         {golfer.name}
                       </a>
+                      <span className={`font-mono text-xs ${getPickCountColor(golfer.pickCount)}`}>
+                        {golfer.pickCount} teams
+                      </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 ml-11">
                       <div>
@@ -1001,6 +1030,31 @@ export default function Dashboard() {
 
             {/* Golfer Popularity - Mobile */}
             <div className="lg:hidden space-y-2 mb-8">
+              {/* Mobile Sort Controls */}
+              <div className="flex gap-1.5 overflow-x-auto pb-2 mb-1">
+                {([
+                  { key: "picks" as const, label: "Teams" },
+                  { key: "official" as const, label: "Official $" },
+                  { key: "projected" as const, label: "Projected $" },
+                  { key: "name" as const, label: "Name" },
+                ]).map((col) => (
+                  <button
+                    key={col.key}
+                    onClick={() => handleGolferSort(col.key)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border transition-colors ${
+                      golferSortBy === col.key
+                        ? "bg-green-700 border-green-600 text-white"
+                        : "bg-gray-800 border-gray-700 text-gray-400"
+                    }`}
+                  >
+                    {col.label}
+                    {golferSortBy === col.key && (
+                      <span className="ml-1">{golferSortDir === "asc" ? "↑" : "↓"}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+
               {sortedGolfers.map((golfer, idx) => (
                 <div key={golfer.name} className="bg-gray-900 rounded-xl border border-gray-800 p-3">
                   <div className="flex items-center gap-3 mb-2">
@@ -1060,9 +1114,9 @@ export default function Dashboard() {
                   {topCombos.map((combo, idx) => (
                     <div key={idx} className="px-4 py-3 hover:bg-gray-800/30 transition-colors">
                       <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap min-w-0">
                           {combo.teams.map((team) => (
-                            <span key={team} className="text-sm font-medium bg-gray-800 px-2 py-0.5 rounded">
+                            <span key={team} className="text-sm font-medium bg-gray-800 px-2 py-0.5 rounded truncate max-w-[140px] sm:max-w-none">
                               {team}
                             </span>
                           ))}
@@ -1078,7 +1132,7 @@ export default function Dashboard() {
                             href={getPgaTourUrl(g)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[11px] text-green-400/70 hover:text-green-400 hover:underline transition-colors"
+                            className="text-xs sm:text-[11px] text-green-400/70 hover:text-green-400 hover:underline transition-colors py-0.5"
                           >
                             {g}
                           </a>
