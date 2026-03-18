@@ -87,6 +87,43 @@ function getEventUrl(name: string): string {
   return `/api/event-link?name=${encodeURIComponent(name)}`;
 }
 
+interface CourseInfo {
+  course: string;
+  location: string;
+  ytId: string;
+  videoTitle: string;
+  videoAuthor: string;
+}
+
+const COURSE_DATA: { keywords: string[]; info: CourseInfo }[] = [
+  { keywords: ["phoenix", "wm phoenix"],          info: { course: "TPC Scottsdale",              location: "Scottsdale, AZ",          ytId: "PLjkrlz0JX0", videoTitle: "TPC Scottsdale Full Course Flyover 4K",                           videoAuthor: "nike23osu" }},
+  { keywords: ["genesis"],                         info: { course: "Riviera Country Club",         location: "Pacific Palisades, CA",   ytId: "uxkAUwi9TUA", videoTitle: "Every Hole at The Riviera Country Club",                          videoAuthor: "Golf Digest" }},
+  { keywords: ["palmer", "arnold palmer"],          info: { course: "Bay Hill Club & Lodge",         location: "Orlando, FL",             ytId: "545F1IdBvTM", videoTitle: "Bay Hill Course Breakdown (2026) Flyover",                        videoAuthor: "Common Sense Golf" }},
+  { keywords: ["players"],                         info: { course: "TPC Sawgrass",                 location: "Jacksonville, FL",        ytId: "GgOb7N7pY80", videoTitle: "Every Hole at TPC Sawgrass Stadium Course",                       videoAuthor: "Golf Digest" }},
+  { keywords: ["valspar"],                         info: { course: "Innisbrook Resort (Copperhead)",location: "Palm Harbor, FL",         ytId: "58gwf5pNbzg", videoTitle: "Innisbrook Copperhead Course Flyover",                            videoAuthor: "Jim isF" }},
+  { keywords: ["masters"],                         info: { course: "Augusta National Golf Club",    location: "Augusta, GA",             ytId: "rzn9beZEG_g", videoTitle: "Every Hole at Augusta National with Scottie Scheffler",           videoAuthor: "The Masters" }},
+  { keywords: ["heritage", "rbc"],                  info: { course: "Harbour Town Golf Links",       location: "Hilton Head Island, SC",  ytId: "92C5wCZBEqs", videoTitle: "Harbour Town Hole Flyovers",                                      videoAuthor: "GolfGamer72" }},
+  { keywords: ["truist", "wells fargo", "quail hollow"], info: { course: "Quail Hollow Club",       location: "Charlotte, NC",           ytId: "Gil8szwy36w", videoTitle: "Every Hole at Quail Hollow",                                      videoAuthor: "Golf Digest" }},
+  { keywords: ["pga champ"],                        info: { course: "Aronimink Golf Club",           location: "Ardmore, PA",             ytId: "L-bBrdQrRqs", videoTitle: "Donald Ross in Philly: Aronimink Golf Club",                      videoAuthor: "Fried Egg Golf" }},
+  { keywords: ["memorial"],                        info: { course: "Muirfield Village Golf Club",   location: "Dublin, OH",              ytId: "hS--mWC5OMY", videoTitle: "Muirfield Village Golf Club Fly Over with Drone",                 videoAuthor: "Jon Fligner" }},
+  { keywords: ["u.s. open", "us open"],             info: { course: "Shinnecock Hills Golf Club",    location: "Southampton, NY",         ytId: "OimJrpKF-Eg", videoTitle: "2026 U.S. Open: Flyovers of Every Hole at Shinnecock Hills",      videoAuthor: "USGA" }},
+  { keywords: ["travelers"],                       info: { course: "TPC River Highlands",           location: "Cromwell, CT",            ytId: "sGr4E8GtHwU", videoTitle: "Aerial View of TPC River Highlands Golf Course",                  videoAuthor: "Fanatics View Golf" }},
+  { keywords: ["scottish"],                        info: { course: "The Renaissance Club",           location: "North Berwick, Scotland", ytId: "_-AxrdWym3Q", videoTitle: "Every Hole at The Renaissance Club",                              videoAuthor: "Golf Digest" }},
+  { keywords: ["open champ", "british"],            info: { course: "Royal Birkdale Golf Club",      location: "Southport, England",      ytId: "l3xZJr1jyLo", videoTitle: "Royal Birkdale Course Guide",                                     videoAuthor: "Golfing World" }},
+  { keywords: ["wyndham"],                         info: { course: "Sedgefield Country Club",       location: "Greensboro, NC",          ytId: "tQwd_vNwzYo", videoTitle: "Sedgefield Country Club Aerial Tour",                            videoAuthor: "McConnell Golf" }},
+  { keywords: ["jude", "fedex st"],                 info: { course: "TPC Southwind",                 location: "Memphis, TN",             ytId: "UkvQv9I0w8M", videoTitle: "GSPro Course Flyover – TPC Southwind",                            videoAuthor: "Jgixr" }},
+];
+
+function findCourseInfo(eventName: string): CourseInfo | null {
+  const lower = eventName.toLowerCase();
+  for (const entry of COURSE_DATA) {
+    if (entry.keywords.some((kw) => lower.includes(kw))) {
+      return entry.info;
+    }
+  }
+  return null;
+}
+
 function getPositionStyle(pos: number) {
   if (pos === 1) return "bg-gradient-to-r from-yellow-400/20 to-transparent border-l-4 border-yellow-400";
   if (pos === 2) return "bg-gradient-to-r from-gray-300/20 to-transparent border-l-4 border-gray-400";
@@ -125,6 +162,7 @@ export default function Dashboard() {
   const [compareTeamB, setCompareTeamB] = useState<string>("");
   const [mvpSortBy, setMvpSortBy] = useState<"official" | "projected" | "event" | "name" | "picks">("official");
   const [mvpSortDir, setMvpSortDir] = useState<"asc" | "desc">("asc");
+  const [courseModal, setCourseModal] = useState<{ eventName: string; course: CourseInfo } | null>(null);
 
   const fetchData = async (isRefresh = false) => {
     if (!isRefresh) setLoading(true);
@@ -541,25 +579,41 @@ export default function Dashboard() {
                     >
                       Projected $ <SortIcon col="projTotal" />
                     </th>
-                    {data.events.map((event) => (
+                    {data.events.map((event) => {
+                      const courseInfo = findCourseInfo(event.name);
+                      return (
                       <th
                         key={event.id}
                         className="px-3 py-3 text-right cursor-pointer hover:text-white transition-colors whitespace-nowrap"
                         onClick={() => handleSort(event.id)}
                       >
-                        <a
-                          href={getEventUrl(event.name)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className={`hover:underline ${event.isCurrent ? "text-yellow-400" : ""}`}
-                        >
-                          {event.name}
-                          {event.isCurrent && " *"}
-                        </a>
+                        <span className="inline-flex items-center gap-1">
+                          {courseInfo ? (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setCourseModal({ eventName: event.name, course: courseInfo }); }}
+                              className={`hover:underline text-left ${event.isCurrent ? "text-yellow-400" : ""}`}
+                              title={`${courseInfo.course} — ${courseInfo.location}`}
+                            >
+                              {event.name}
+                              {event.isCurrent && " *"}
+                            </button>
+                          ) : (
+                            <a
+                              href={getEventUrl(event.name)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className={`hover:underline ${event.isCurrent ? "text-yellow-400" : ""}`}
+                            >
+                              {event.name}
+                              {event.isCurrent && " *"}
+                            </a>
+                          )}
+                        </span>
                         <SortIcon col={event.id} />
                       </th>
-                    ))}
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
@@ -730,20 +784,34 @@ export default function Dashboard() {
                     </div>
 
                     <div className="grid grid-cols-3 gap-1.5">
-                      {data.events.map((event) => (
+                      {data.events.map((event) => {
+                        const courseInfo = findCourseInfo(event.name);
+                        return (
                         <div key={event.id} className="text-center">
-                          <a
-                            href={getEventUrl(event.name)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className={`text-[9px] uppercase truncate block hover:underline ${
-                              event.isCurrent ? "text-yellow-400" : "text-gray-600"
-                            }`}
-                          >
-                            {event.name}
-                            {event.isCurrent ? " *" : ""}
-                          </a>
+                          {courseInfo ? (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setCourseModal({ eventName: event.name, course: courseInfo }); }}
+                              className={`text-[9px] uppercase truncate block hover:underline w-full ${
+                                event.isCurrent ? "text-yellow-400" : "text-gray-600"
+                              }`}
+                            >
+                              {event.name}
+                              {event.isCurrent ? " *" : ""}
+                            </button>
+                          ) : (
+                            <a
+                              href={getEventUrl(event.name)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className={`text-[9px] uppercase truncate block hover:underline ${
+                                event.isCurrent ? "text-yellow-400" : "text-gray-600"
+                              }`}
+                            >
+                              {event.name}
+                              {event.isCurrent ? " *" : ""}
+                            </a>
+                          )}
                           <p
                             className={`text-xs font-mono ${
                               event.isCurrent ? "text-yellow-300" : "text-gray-500"
@@ -752,7 +820,8 @@ export default function Dashboard() {
                             {formatMoney(entry.eventEarnings[event.id] || "$0")}
                           </p>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -1299,6 +1368,75 @@ export default function Dashboard() {
           Data sourced from EasyOfficePools.com
         </div>
       </footer>
+
+      {/* Course Info Modal */}
+      {courseModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setCourseModal(null)}
+        >
+          <div
+            className="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between p-4 sm:p-5 border-b border-gray-800">
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold">{courseModal.eventName}</h2>
+                <p className="text-sm text-gray-400 mt-0.5">{courseModal.course.course}</p>
+                <p className="text-xs text-gray-500">{courseModal.course.location}</p>
+              </div>
+              <button
+                onClick={() => setCourseModal(null)}
+                className="text-gray-500 hover:text-white transition-colors p-1 -mr-1 -mt-1"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* YouTube Embed */}
+            <div className="p-4 sm:p-5">
+              <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
+                <iframe
+                  className="absolute inset-0 w-full h-full rounded-xl"
+                  src={`https://www.youtube.com/embed/${courseModal.course.ytId}?rel=0`}
+                  title={courseModal.course.videoTitle}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-300">{courseModal.course.videoTitle}</p>
+                  <p className="text-xs text-gray-500">{courseModal.course.videoAuthor}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="p-4 sm:p-5 pt-0 flex flex-col sm:flex-row gap-2">
+              <a
+                href={getEventUrl(courseModal.eventName)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 text-center px-4 py-2.5 bg-green-700 hover:bg-green-600 rounded-lg text-sm font-medium transition-colors"
+              >
+                View Leaderboard
+              </a>
+              <a
+                href={`https://www.youtube.com/watch?v=${courseModal.course.ytId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 text-center px-4 py-2.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-sm font-medium transition-colors"
+              >
+                Watch on YouTube
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
