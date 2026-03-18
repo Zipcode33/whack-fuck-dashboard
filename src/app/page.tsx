@@ -274,8 +274,8 @@ export default function Dashboard() {
   }
 
   function SortIcon({ col }: { col: SortKey }) {
-    if (sortBy !== col) return <span className="text-gray-600 ml-1 text-[10px]">↕</span>;
-    return <span className="text-green-400 ml-1 text-[10px]">{sortDir === "asc" ? "↑" : "↓"}</span>;
+    if (sortBy !== col) return <span className="text-gray-500 ml-1.5 text-xs">↕</span>;
+    return <span className="text-green-400 ml-1.5 text-xs font-bold">{sortDir === "asc" ? "▲" : "▼"}</span>;
   }
 
   const topOfficial = data?.entries.reduce((best, e) =>
